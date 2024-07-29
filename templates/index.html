@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySQL</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #0254a5;
+            margin: 40px 0 20px 0;
+        }
+        .input, textarea {
+            width: 90%;
+            max-width: 500px;
+            padding: 15px;
+            margin: 15px auto;
+            display: block;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease-in-out, transform 0.2s ease-out;
+            font-size: 18px;
+            background: #ffffff;
+        }
+        .input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(2,84,165,0.25);
+            transform: translateY(-3px);
+        }
+        button {
+            width: auto;
+            padding: 12px 40px;
+            margin: 30px auto;
+            display: block;
+            background-color: #0275d8;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, box-shadow 0.3s, transform 0.2s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+            text-align: center;
+        }
+        button:hover {
+            background-color: #0254a5;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        .toggle {
+            display: flex;
+            justify-content: center;
+            margin: 20px;
+        }
+        .toggle label {
+            cursor: pointer;
+            padding: 10px 20px;
+            background: #ccc;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .toggle input[type="checkbox"]:checked + label {
+            background: #0275d8;
+            color: white;
+        }
+        .container {
+            width: 100%;
+            max-width: 620px;
+            margin: 0 auto;
+            padding: 40px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        textarea {
+            height: 200px;
+        }
+        .sql-form {
+            margin-bottom: 20px;
+        }
+        .alert {
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .alert.success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .alert.error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body id="body" class="body">
+    <header>
+        <h1>Crear base de datos MYSQL</h1>
+        <div class="toggle">
+            <input type="checkbox" id="botonModoOscuroClaro"/>
+            <label for="botonModoOscuroClaro">Modo Oscuro/Claro</label>
+        </div>
+    </header>
+
+    <h2>Crear Usuario</h2>
+    <form id="createUserForm">
+        <input type="text" placeholder="Nombre de usuario" id="newUsername" class="input">
+        <input type="password" placeholder="Contraseña" id="newPassword" class="input">
+        <button type="submit">Crear Usuario</button>
+    </form>
+
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+        <input type="text" placeholder="Nombre de usuario" id="loginUsername" class="input">
+        <input type="password" placeholder="Contraseña" id="loginPassword" class="input">
+        <button type="submit">Iniciar Sesión</button>
+    </form>
+
+    <h2>Comandos SQL</h2>
+    <div id="sqlForms" style="display:none;">
+        <form class="sql-form" id="sqlForm1">
+            <input type="text" placeholder="1. Crea tu base de datos (CREATE DATABASE)" name="query" class="input">
+            <button type="submit">Ejecutar</button>
+        </form>
+        <form class="sql-form" id="sqlForm2">
+            <input type="text" placeholder="2. Ubicate en tu base de datos (USE)" name="query" class="input">
+            <button type="submit">Ejecutar</button>
+        </form>
+        <form class="sql-form" id="sqlForm3">
+            <input type="text" placeholder="3. Crea una tabla en tu base de datos (CREATE TABLE)" name="query" class="input">
+            <button type="submit">Ejecutar</button>
+        </form>
+        <form class="sql-form" id="sqlForm4">
+            <input type="text" placeholder="4. Añade entradas a tu base de datos (INSERT INTO)" name="query" class="input">
+            <button type="submit">Ejecutar</button>
+        </form>
+        <form class="sql-form" id="sqlForm5">
+            <input type="text" placeholder="5. Modifica o elimina tus entradas (UPDATE, DELETE)" name="query" class="input">
+            <button type="submit">Ejecutar</button>
+        </form>
+    </div>
+    
+    <h2>Resultados del Análisis</h2>
+    <div class="container">
+        <div class="analyzer-title">Resultados Léxicos</div>
+        <textarea id="lexicalResults" placeholder="Resultados Léxicos"></textarea>
+        <div class="analyzer-title">Resultados Sintácticos</div>
+        <textarea id="syntacticResults" placeholder="Resultados Sintácticos"></textarea>
+        <div class="analyzer-title">Resultados Semánticos</div>
+        <textarea id="semanticResults" placeholder="Resultados Semánticos"></textarea>
+    </div>
+
+    <script>
+        document.getElementById('botonModoOscuroClaro').addEventListener('click', function() {
+            var body = document.getElementById('body');
+            if (body.style.backgroundColor == 'rgb(255, 255, 255)') {
+                body.style.backgroundColor = '#000000';
+                body.style.color = '#ffffff';
+            } else {
+                body.style.backgroundColor = '#ffffff';
+                body.style.color = '#333';
+            }
+        });
+
+        const users = [];
+
+        document.getElementById('createUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+
+            if (username && password) {
+                users.push({ username, password });
+                showAlert('Usuario creado exitosamente', 'success');
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newPassword').value = '';
+            } else {
+                showAlert('Por favor ingresa un nombre de usuario y una contraseña válidos', 'error');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(user => user.username === username && user.password === password);
+
+            if (user) {
+                showAlert('Login exitoso', 'success');
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('sqlForms').style.display = 'block';
+            } else {
+                showAlert('Nombre de usuario o contraseña incorrectos', 'error');
+            }
+        });
+
+        const sqlForms = document.querySelectorAll('.sql-form');
+        sqlForms.forEach((form, index) => {
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const queryInput = form.querySelector('input[name="query"]');
+                const query = queryInput.value;
+
+                const lexicalResults = document.getElementById('lexicalResults');
+                const syntacticResults = document.getElementById('syntacticResults');
+                const semanticResults = document.getElementById('semanticResults');
+
+                if (lexicalResults && syntacticResults && semanticResults) {
+                    lexicalResults.value = '';
+                    syntacticResults.value = '';
+                    semanticResults.value = '';
+
+                    try {
+                        const localResponse = await fetch('/validate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ queries: [query] })
+                        });
+
+                        const localResults = await localResponse.json();
+
+                        if (localResults[0].valid) {
+                            queryInput.classList.remove('invalid');
+                            queryInput.classList.add('valid');
+
+                            let message = '';
+                            switch(index) {
+                                case 0:
+                                    message = 'Base de datos creada exitosamente';
+                                    break;
+                                case 1:
+                                    message = 'Base de datos seleccionada exitosamente';
+                                    break;
+                                case 2:
+                                    message = 'Tabla creada exitosamente';
+                                    break;
+                                case 3:
+                                    message = 'Datos insertados exitosamente';
+                                    break;
+                                case 4:
+                                    message = 'Datos actualizados o eliminados exitosamente';
+                                    break;
+                            }
+                            showAlert(message, 'success');
+                        } else {
+                            queryInput.classList.remove('valid');
+                            queryInput.classList.add('invalid');
+                            showAlert(`Error en el campo ${index + 1}: ${localResults[0].error}`, 'error');
+                        }
+
+                        lexicalResults.value += `Consulta ${index + 1}: ${JSON.stringify(localResults[0].lexical)}\n`;
+                        syntacticResults.value += `Consulta ${index + 1}: ${localResults[0].syntactic}\n`;
+                        semanticResults.value += `Consulta ${index + 1}: ${localResults[0].semantic}\n`;
+
+                        const remoteResponse = await fetch('http://3.220.235.132:3000/sql/execute-sql', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ sql: query })
+                        });
+
+                        if (!remoteResponse.ok) {
+                            throw new Error(`HTTP error! status: ${remoteResponse.status}`);
+                        }
+
+                        const remoteResults = await remoteResponse.json();
+                        console.log('Resultados del endpoint remoto:', remoteResults);
+
+                    } catch ( error) {
+                        console.error('Error en la petición:', error);
+                        showAlert('Ocurrió un error al realizar la petición. Por favor, revisa tu conexión a internet y vuelve a intentarlo.', 'error');
+                    }
+                } else {
+                    console.error('One or more elements are missing on the page.');
+                }
+            });
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type}`;
+            alertDiv.textContent = message;
+
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
